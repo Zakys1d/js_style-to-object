@@ -1,20 +1,6 @@
 'use strict';
 
 /**
- * @param {string} sourceString
- *
- * @return {object}
- */
-'use strict';
-
-/**
- * @param {string} stylesString
- * @return {Object}
- */
-
-'use strict';
-
-/**
  * @param {string} stylesString
  * @return {Object}
  */
@@ -23,48 +9,31 @@ function convertToObject(stylesString) {
     return {};
   }
 
-  const result = {};
-  let buffer = '';
+  // Split by declaration terminator, then reduce into an object
+  return stylesString
+    .split(';')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+    .reduce((stylesObject, declaration) => {
+      const colonIndex = declaration.indexOf(':');
 
-  function commit(decl) {
-    const s = decl.trim();
+      // Ignore invalid declarations without ':'
+      if (colonIndex === -1) {
+        return stylesObject;
+      }
 
-    if (!s) {
-      return;
-    }
+      const property = declaration.slice(0, colonIndex).trim();
+      const value = declaration.slice(colonIndex + 1).trim();
 
-    const idx = s.indexOf(':');
+      // Skip empty keys/values (example output doesn't include them)
+      if (!property || !value) {
+        return stylesObject;
+      }
 
-    if (idx === -1) {
-      return;
-    }
+      stylesObject[property] = value;
 
-    const key = s.slice(0, idx).trim();
-    const value = s.slice(idx + 1).trim();
-
-    if (!key || !value) {
-      return;
-    }
-
-    result[key] = value;
-  }
-
-  for (let i = 0; i < stylesString.length; i++) {
-    const ch = stylesString[i];
-
-    if (ch === ';') {
-      // кінець декларації
-      commit(buffer);
-      buffer = '';
-    } else {
-      buffer += ch;
-    }
-  }
-
-  // якщо остання декларація без ';' в кінці
-  commit(buffer);
-
-  return result;
+      return stylesObject;
+    }, {});
 }
 
 module.exports = convertToObject;
